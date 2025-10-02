@@ -135,8 +135,63 @@ public:
     }
 };
 
+void testTooManyInputs()
+{
+    cout << "\nTest 2: Too Many Input Streams" << endl;
+    
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    
+    try {
+        absorber.addInput(s3);
+        cout << "Test 2 failed" << endl;
+    } 
+    catch(const char* ex) {
+        if (string(ex) == "Too much inputs for absorber")
+            cout << "Test 2 passed" << endl;
+        else
+            cout << "Test 2 failed: " << ex << endl;
+    }
+}
+
+void testTooManyOutputs()
+{
+    cout << "\nTest 3: Too Many Output Streams" << endl;
+    
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    
+    absorber.addOutput(s1);
+    absorber.addOutput(s2);
+    
+    try {
+        absorber.addOutput(s3);
+        cout << "Test 3 failed" << endl;
+    } catch(const char* ex) {
+        if (string(ex) == "Too much outputs for absorber")
+            cout << "Test 3 passed" << endl;
+        else
+            cout << "Test 3 failed: " << ex << endl;
+    }
+}
+
 void tests()
 {
+    testTooManyInputs();
+    testTooManyOutputs();
 }
 
 int main()
