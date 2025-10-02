@@ -137,7 +137,7 @@ public:
 
 void testTooManyInputs()
 {
-    cout << "\nTest 2: Too Many Input Streams" << endl;
+    cout << "\nTest 1: Too Many Input Streams" << endl;
     
     streamcounter = 0;
     Absorber absorber;
@@ -152,19 +152,19 @@ void testTooManyInputs()
     
     try {
         absorber.addInput(s3);
-        cout << "Test 2 failed" << endl;
+        cout << "Test 1 failed" << endl;
     } 
     catch(const char* ex) {
         if (string(ex) == "Too much inputs for absorber")
-            cout << "Test 2 passed" << endl;
+            cout << "Test 1 passed" << endl;
         else
-            cout << "Test 2 failed: " << ex << endl;
+            cout << "Test 1 failed: " << ex << endl;
     }
 }
 
 void testTooManyOutputs()
 {
-    cout << "\nTest 3: Too Many Output Streams" << endl;
+    cout << "\nTest 2: Too Many Output Streams" << endl;
     
     streamcounter = 0;
     Absorber absorber;
@@ -179,12 +179,12 @@ void testTooManyOutputs()
     
     try {
         absorber.addOutput(s3);
-        cout << "Test 3 failed" << endl;
+        cout << "Test 2 failed" << endl;
     } catch(const char* ex) {
         if (string(ex) == "Too much outputs for absorber")
-            cout << "Test 3 passed" << endl;
+            cout << "Test 2 passed" << endl;
         else
-            cout << "Test 3 failed: " << ex << endl;
+            cout << "Test 2 failed: " << ex << endl;
     }
 }
 
