@@ -188,10 +188,42 @@ void testTooManyOutputs()
     }
 }
 
+void testSetOutputs(){
+    cout << "\nTest 3: Input-Output Mass Balance" << endl;
+
+    streamcounter=0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
+    s1->setMassFlow(10.0);
+    s2->setMassFlow(15.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
+    
+    double totalOutput = absorber.getOutputs()[0]->getMassFlow() + absorber.getOutputs()[1]->getMassFlow();
+    double totalinput = absorber.getInputs()[0]->getMassFlow() + absorber.getInputs()[1]->getMassFlow();
+    
+    if(abs(totalOutput - totalinput) < POSSIBLE_ERROR) {
+        cout << "Test 3 passed." << endl;
+    } else {
+        cout << "Test 3 failed: " << totalOutput << " != " <<totalinput << endl;
+    }
+}
+
 void tests()
 {
     testTooManyInputs();
     testTooManyOutputs();
+    testSetOutputs();
 }
 
 int main()
