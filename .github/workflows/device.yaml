@@ -27,7 +27,7 @@ jobs:
         
     - name: Compile the program
       run: |
-        g++ -std=c++11 -o test_program main.cpp
+        g++ -std=c++11 -o test_program device.cpp
         
     - name: Run tests
       run: |
