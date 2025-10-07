@@ -213,17 +213,56 @@ void testSetOutputs(){
     double totalinput = absorber.getInputs()[0]->getMassFlow() + absorber.getInputs()[1]->getMassFlow();
     
     if(abs(totalOutput - totalinput) < POSSIBLE_ERROR) {
-        cout << "Test 3 passed." << endl;
+        cout << "Test 3 passed" << endl;
     } else {
         cout << "Test 3 failed: " << totalOutput << " != " <<totalinput << endl;
     }
 }
 
+void testOutputDistribution()
+{
+    cout << "\nTest 4: Output Mass Distribution (30%/70%)" << endl;
+    
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
+    s1->setMassFlow(60.0);
+    s2->setMassFlow(40.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
+    
+    double total_input = 60.0 + 40.0;
+    double expected_output1 = total_input * 0.3;
+    double expected_output2 = total_input * 0.7;
+    
+    double actual_output1 = absorber.getOutputs()[0]->getMassFlow();
+    double actual_output2 = absorber.getOutputs()[1]->getMassFlow();
+    
+    bool test1_passed = abs(actual_output1 - expected_output1) < POSSIBLE_ERROR;
+    bool test2_passed = abs(actual_output2 - expected_output2) < POSSIBLE_ERROR;
+    
+    if (test1_passed && test2_passed) {
+        cout << "Test 4 passed" << endl;
+    } else {
+        cout << "Test 4 failed: Incorrect distribution" << endl;
+    }
+}
 void tests()
 {
     testTooManyInputs();
     testTooManyOutputs();
     testSetOutputs();
+    testOutputDistribution();
 }
 
 int main()
