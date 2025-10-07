@@ -1,9 +1,3 @@
-/**
- * @file main.cpp
- *
- * @brief A C++ program demonstrating the usage of the Stream and Device classes.
- */
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,7 +28,7 @@ public:
      */
     Stream(int s){setName("s"+std::to_string(s));}
 
-    /**
+     /**
      * @brief Set the name of the stream.
      * @param s The new name for the stream.
      */
@@ -75,273 +69,239 @@ protected:
     vector<shared_ptr<Stream>> outputs; ///< Output streams produced by the device.
     int inputAmount;
     int outputAmount;
+    
 public:
-    /**
+    Device() : inputAmount(0), outputAmount(0) {}
+    const vector<shared_ptr<Stream>>& getInputs() const { return inputs; }
+    const vector<shared_ptr<Stream>>& getOutputs() const { return outputs; }
+    
+      /**
      * @brief Add an input stream to the device.
      * @param s A shared pointer to the input stream.
      */
-    void addInput(shared_ptr<Stream> s){
-      if(inputs.size() < inputAmount) inputs.push_back(s);
-      else throw"INPUT STREAM LIMIT!";
+    virtual void addInput(shared_ptr<Stream> s){
+        if(inputs.size() < inputAmount) inputs.push_back(s);
+        else throw "INPUT STREAM LIMIT!";
     }
-    /**
+    
+      /**
      * @brief Add an output stream to the device.
      * @param s A shared pointer to the output stream.
      */
-    void addOutput(shared_ptr<Stream> s){
-      if(outputs.size() < outputAmount) outputs.push_back(s);
-      else throw "OUTPUT STREAM LIMIT!";
+    virtual void addOutput(shared_ptr<Stream> s){
+        if(outputs.size() < outputAmount) outputs.push_back(s);
+        else throw "OUTPUT STREAM LIMIT!";
     }
 
-    /**
+      /**
      * @brief Update the output streams of the device (to be implemented by derived classes).
      */
     virtual void updateOutputs() = 0;
 };
 
-class Mixer: public Device
+class Absorber : public Device
 {
-    private:
-      int _inputs_count = 0;
-    public:
-      Mixer(int inputs_count): Device() {
-        _inputs_count = inputs_count;
-      }
-      void addInput(shared_ptr<Stream> s) {
-        if (inputs.size() == _inputs_count) {
-          throw "Too much inputs"s;
+public:
+    Absorber() {
+        inputAmount = 2; 
+        outputAmount = 2; 
+    }
+    
+    void addInput(shared_ptr<Stream> s) override {
+        if (inputs.size() >= inputAmount) {
+            throw "Too much inputs for absorber";
         }
         inputs.push_back(s);
-      }
-      void addOutput(shared_ptr<Stream> s) {
-        if (outputs.size() == MIXER_OUTPUTS) {
-          throw "Too much outputs"s;
+    }
+    
+    void addOutput(shared_ptr<Stream> s) override {
+        if (outputs.size() >= outputAmount) {
+            throw "Too much outputs for absorber";
         }
         outputs.push_back(s);
-      }
-      void updateOutputs() override {
-        double sum_mass_flow = 0;
-        for (const auto& input_stream : inputs) {
-          sum_mass_flow += input_stream -> getMassFlow();
-        }
-
-        if (outputs.empty()) {
-          throw "Should set outputs before update"s;
-        }
-
-        double output_mass = sum_mass_flow / outputs.size(); // divide 0
-
-        for (auto& output_stream : outputs) {
-          output_stream -> setMassFlow(output_mass);
-        }
-      }
-};
-
-void shouldSetOutputsCorrectlyWithOneOutput() {
-    streamcounter=0;
-    Mixer d1 = Mixer(2);
-    
-    shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s2(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-
-    d1.addInput(s1);
-    d1.addInput(s2);
-    d1.addOutput(s3);
-
-    d1.updateOutputs();
-
-    if (abs(s3->getMassFlow()) - 15 < POSSIBLE_ERROR) {
-      cout << "Test 1 passed"s << endl;
-    } else {
-      cout << "Test 1 failed"s << endl;
-    }
-}
-
-void shouldCorrectOutputs() {
-    streamcounter=0;
-    Mixer d1 = Mixer(2);
-    
-    shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s2(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
-    shared_ptr<Stream> s4(new Stream(++streamcounter));
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-
-    d1.addInput(s1);
-    d1.addInput(s2);
-    d1.addOutput(s3);
-
-    try {
-      d1.addOutput(s4);
-    } catch (const string ex) {
-      if (ex == "Too much outputs"s) {
-        cout << "Test 2 passed"s << endl;
-
-        return;
-      }
-    }
-
-    cout << "Test 2 failed"s << endl;
-}
-
-void shouldCorrectInputs() {
-    streamcounter=0;
-    Mixer d1 = Mixer(2);
-    
-    shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s2(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
-    shared_ptr<Stream> s4(new Stream(++streamcounter));
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-
-    d1.addInput(s1);
-    d1.addInput(s2);
-    d1.addOutput(s3);
-
-    try {
-      d1.addInput(s4);
-    } catch (const string ex) {
-      if (ex == "Too much inputs"s) {
-        cout << "Test 3 passed"s << endl;
-
-        return;
-      }
-    }
-
-    cout << "Test 3 failed"s << endl;
-}
-
-class Reactor : public Device{
-public:
-    Reactor(bool isDoubleReactor) {
-        inputAmount = 1;
-        if (isDoubleReactor) outputAmount = 2;
-        else inputAmount = 1;
     }
     
-    void updateOutputs() override{
-        double inputMass = inputs.at(0) -> getMassFlow();
-            for(int i = 0; i < outputAmount; i++){
-            double outputLocal = inputMass * (1/outputAmount);
-            outputs.at(i) -> setMassFlow(outputLocal);
+    void updateOutputs() override {
+        if (inputs.size() < inputAmount || outputs.size() < outputAmount) {
+            throw "Absorber requires exactly 2 inputs and 2 outputs";
         }
+        
+        double input1_mass = inputs[0]->getMassFlow();
+        double input2_mass = inputs[1]->getMassFlow();
+        
+        double total_mass = input1_mass + input2_mass;
+        outputs[0]->setMassFlow(total_mass * 0.3); 
+        outputs[1]->setMassFlow(total_mass * 0.7); 
     }
 };
 
-void testTooManyOutputStreams(){
-    streamcounter=0;
+void testTooManyInputs()
+{
+    cout << "\nTest 1: Too Many Input Streams" << endl;
     
-    Reactor dl = new Reactor(false);
+    streamcounter = 0;
+    Absorber absorber;
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
+
     shared_ptr<Stream> s3(new Stream(++streamcounter));
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-    dl.addInput(s1);
-    dl.addOutput(s2);
-    try{
-        dl.addOutput(s3);
-    } catch(const string ex){
-         if (ex == "OUTPUT STREAM LIMIT!")
+    
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    
+    try {
+        absorber.addInput(s3);
+        cout << "Test 1 failed" << endl;
+    } 
+    catch(const char* ex) {
+        if (string(ex) == "Too much inputs for absorber")
             cout << "Test 1 passed" << endl;
-
-        return;
+        else
+            cout << "Test 1 failed: " << ex << endl;
     }
-    
-     cout << "Test 1 failed" << endl;
 }
 
-void testTooManyInputStreams(){
-    streamcounter=0;
+void testTooManyOutputs()
+{
+    cout << "\nTest 2: Too Many Output Streams" << endl;
     
-    Reactor dl = new Reactor(false);
+    streamcounter = 0;
+    Absorber absorber;
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-    dl.addInput(s1);
-    try{
-        dl.addInput(s3);
-    } catch(const string ex){
-         if (ex == "INPUT STREAM LIMIT!")
-            cout << "Test 2 passed" << endl;
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
 
-        return;
-    }
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
     
-     cout << "Test 2 failed"s << endl;
+    absorber.addOutput(s1);
+    absorber.addOutput(s2);
+    
+    try {
+        absorber.addOutput(s3);
+        cout << "Test 2 failed" << endl;
+    } catch(const char* ex) {
+        if (string(ex) == "Too much outputs for absorber")
+            cout << "Test 2 passed" << endl;
+        else
+            cout << "Test 2 failed: " << ex << endl;
+    }
 }
 
-void testInputEqualOutput(){
-        streamcounter=0;
-    
-    Reactor dl = new Reactor(true);
+void testSetOutputs(){
+    cout << "\nTest 3: Input-Output Mass Balance" << endl;
+
+    streamcounter=0;
+    Absorber absorber;
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
     shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
     s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-    dl.addInput(s1);
-    dl.addOutput(s2);
-    dl.addOutput(s3);
+    s2->setMassFlow(15.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
     
-    dl.updateOutputs();
+    double totalOutput = absorber.getOutputs()[0]->getMassFlow() + absorber.getOutputs()[1]->getMassFlow();
+    double totalinput = absorber.getInputs()[0]->getMassFlow() + absorber.getInputs()[1]->getMassFlow();
     
-    if(dl.outputs.at(0).getMassFlow + dl.outputs.at(1).getMassFlow == dl.inputs.at(0).getMassFlow)
+    if(abs(totalOutput - totalinput) < POSSIBLE_ERROR) {
         cout << "Test 3 passed" << endl;
-    else
-        cout << "Test 3 failed" << endl;
+    } else {
+        cout << "Test 3 failed: " << totalOutput << " != " <<totalinput << endl;
+    }
 }
 
-void tests(){
-    testInputEqualOutput();
-    testTooManyOutputStreams();
-    testTooManyInputStreams();
+void testOutputDistribution()
+{
+    cout << "\nTest 4: Output Mass Distribution" << endl;
     
-    shouldSetOutputsCorrectlyWithOneOutput();
-    shouldCorrectOutputs();
-    shouldCorrectInputs();
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
+    s1->setMassFlow(60.0);
+    s2->setMassFlow(40.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
+    
+    double total_input = 60.0 + 40.0;
+    double expected_output1 = total_input * 0.3;
+    double expected_output2 = total_input * 0.7;
+    
+    double actual_output1 = absorber.getOutputs()[0]->getMassFlow();
+    double actual_output2 = absorber.getOutputs()[1]->getMassFlow();
+    
+    bool test1_passed = abs(actual_output1 - expected_output1) < POSSIBLE_ERROR;
+    bool test2_passed = abs(actual_output2 - expected_output2) < POSSIBLE_ERROR;
+    
+    if (test1_passed && test2_passed) {
+        cout << "Test 4 passed" << endl;
+    } else {
+        cout << "Test 4 failed: Incorrect distribution" << endl;
+    }
 }
 
-/**
- * @brief The entry point of the program.
- * @return 0 on successful execution.
- */
+void testZeroMassFlow()
+{
+    cout << "\nTest 5: Zero Mass Flow Handling" << endl;
+    
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
+    s1->setMassFlow(0.0);
+    s2->setMassFlow(0.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
+    
+    double output1 = absorber.getOutputs()[0]->getMassFlow();
+    double output2 = absorber.getOutputs()[1]->getMassFlow();
+    
+    if (abs(output1 - 0.0) < POSSIBLE_ERROR && abs(output2 - 0.0) < POSSIBLE_ERROR) {
+        cout << "Test 5 passed" << endl;
+    } else {
+        cout << "Test 5 failed" << endl;
+    }
+}
+
+void tests()
+{
+    testTooManyInputs();
+    testTooManyOutputs();
+    testSetOutputs();
+    testOutputDistribution();
+    testZeroMassFlow();
+}
+
 int main()
 {
     streamcounter = 0;
-
-    // Create streams
-    shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s2(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
-
-    // Set mass flows
-    s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-
-    // Create a device (e.g., Mixer) and add input/output streams
-    // Mixer d1;
-    // d1.addInput(s1);
-    // d1.addInput(s2);
-    // d1.addOutput(s3);
-
-    // Update the outputs of the device
-    // d1.updateOutputs();
-
-    // Print stream information
-//    s1->print();
-//    s2->print();
-//    s3->print();
     tests();
-
     return 0;
 }
