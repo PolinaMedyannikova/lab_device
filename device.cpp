@@ -221,7 +221,7 @@ void testSetOutputs(){
 
 void testOutputDistribution()
 {
-    cout << "\nTest 4: Output Mass Distribution (30%/70%)" << endl;
+    cout << "\nTest 4: Output Mass Distribution" << endl;
     
     streamcounter = 0;
     Absorber absorber;
@@ -257,12 +257,46 @@ void testOutputDistribution()
         cout << "Test 4 failed: Incorrect distribution" << endl;
     }
 }
+
+void testZeroMassFlow()
+{
+    cout << "\nTest 5: Zero Mass Flow Handling" << endl;
+    
+    streamcounter = 0;
+    Absorber absorber;
+    
+    shared_ptr<Stream> s1(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s4(new Stream(++streamcounter));
+
+    s1->setMassFlow(0.0);
+    s2->setMassFlow(0.0);
+
+    absorber.addInput(s1);
+    absorber.addInput(s2);
+    absorber.addOutput(s3);
+    absorber.addOutput(s4);
+
+    absorber.updateOutputs();
+    
+    double output1 = absorber.getOutputs()[0]->getMassFlow();
+    double output2 = absorber.getOutputs()[1]->getMassFlow();
+    
+    if (abs(output1 - 0.0) < POSSIBLE_ERROR && abs(output2 - 0.0) < POSSIBLE_ERROR) {
+        cout << "Test 5 passed" << endl;
+    } else {
+        cout << "Test 5 failed" << endl;
+    }
+}
+
 void tests()
 {
     testTooManyInputs();
     testTooManyOutputs();
     testSetOutputs();
     testOutputDistribution();
+    testZeroMassFlow();
 }
 
 int main()
