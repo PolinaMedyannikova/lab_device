@@ -2,18 +2,41 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main", "nemirko" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main", "nemirko" ]
+    branches: [ "main", "master" ]
+
+name: C++ Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  build:
-
+  test:
+    name: Build and Run Tests
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v3
-    - name: make
-      run: make
-    - name: execute
-      run: ./a.out
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up C++ compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ build-essential
+        
+    - name: Verify compiler
+      run: |
+        g++ --version
+        which g++
+        
+    - name: Compile the program
+      run: |
+        g++ -std=c++11 -o test_program main.cpp
+        
+    - name: Run tests
+      run: |
+        ./test_program
